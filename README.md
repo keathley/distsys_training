@@ -1,5 +1,5 @@
 ## Outline
-
+- [BM] 8 fallacies of dist computing / general words of warning
 - Terminology
 - Connecting Nodes
   - Cookies
