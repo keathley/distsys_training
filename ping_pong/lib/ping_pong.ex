@@ -44,30 +44,17 @@ defmodule PingPong do
     def start(producer) do
       consumer = spawn(fn -> init(producer) end)
       Process.register(consumer, :consumer)
+      consumer
     end
 
     def stop, do: send(:consumer, :stop)
 
     def init(producer) do
-      send(producer, {:hello, self()})
+      # Your code goes here!!!
     end
 
     def consume(expected) do
-      receive do
-        {:ping, ^expected} ->
-          Logger.info("Received expected value: #{expected}")
-          consume(expected+1)
-
-        {:ping, other_value} ->
-          Logger.error("Received unexpected value: #{other_value}")
-          consume(other_value+1)
-
-        :bye ->
-          :ok
-
-        :stop ->
-          :ok
-      end
+      # Your code goes here!!!
     end
   end
 end

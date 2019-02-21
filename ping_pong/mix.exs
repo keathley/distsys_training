@@ -7,7 +7,8 @@ defmodule PingPong.MixProject do
       version: "0.1.0",
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
-      deps: deps()
+      deps: deps(),
+      aliases: aliases()
     ]
   end
 
@@ -22,8 +23,14 @@ defmodule PingPong.MixProject do
   defp deps do
     [
       {:local_cluster, "~> 1.0", only: [:dev, :test]},
-      {:schism, "~> 1.0", only: [:dev, :test]},
-      {:propcheck, "~> 1.1", only: [:dev, :test]},
+      # {:schism, "~> 1.0", only: [:dev, :test]},
+      {:schism, path: "../../schism", only: [:dev, :test]},
+    ]
+  end
+
+  def aliases do
+    [
+      test: ["test --seed 0"]
     ]
   end
 end
