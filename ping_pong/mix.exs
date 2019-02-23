@@ -23,8 +23,7 @@ defmodule PingPong.MixProject do
   defp deps do
     [
       {:local_cluster, "~> 1.0", only: [:dev, :test]},
-      # {:schism, "~> 1.0", only: [:dev, :test]},
-      {:schism, path: "../../schism", only: [:dev, :test]},
+      {:schism, "~> 1.0", only: [:dev, :test]},
     ]
   end
 

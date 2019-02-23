@@ -3,9 +3,8 @@ defmodule PingPongTest do
   doctest PingPong
 
   import ExUnit.CaptureLog
-  require Logger
 
-  alias PingPong.Finished.{
+  alias PingPong.{
     Consumer,
     Producer,
   }
@@ -71,7 +70,6 @@ defmodule PingPongTest do
 
     # Heal partition so that the consumer now sees the producer
     Schism.heal([n1, n2])
-    Logger.info("Healing network")
 
     # See if producing works now
     :ok = Producer.produce(producer)

@@ -3,5 +3,5 @@
   "local_cluster": {:hex, :local_cluster, "1.0.4", "3cabf9b267cf276752ee6ceccdbe3a05a2125da1b93c5bb74b586ae4539ebd66", [:mix], [{:global_flags, "~> 1.0", [hex: :global_flags, repo: "hexpm", optional: false]}], "hexpm"},
   "propcheck": {:hex, :propcheck, "1.1.4", "95852a3f050cc3ee1ef5c9ade14a3bd34e29b54cb8db7ae8bc7f716d904d5120", [:mix], [{:proper, "~> 1.3", [hex: :proper, repo: "hexpm", optional: false]}], "hexpm"},
   "proper": {:hex, :proper, "1.3.0", "c1acd51c51da17a2fe91d7a6fc6a0c25a6a9849d8dc77093533109d1218d8457", [:make, :mix, :rebar3], [], "hexpm"},
-  "schism": {:hex, :schism, "1.0.0", "42fc967c42104bdbfb7942eca6db77d830b966bdfa8c68ddd413ed5bc345a845", [:mix], [], "hexpm"},
+  "schism": {:hex, :schism, "1.0.1", "b700883b4023b06faa5ab4add3aba5706877feb0a3dcfe8127b5dfeefe2513a5", [:mix], [], "hexpm"},
 }
