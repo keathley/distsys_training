@@ -1,21 +1,11 @@
-# MapReduce
+# Map Reduce
 
-**TODO: Add description**
+## Goal
 
-## Installation
+In this exercise we're going to build our own version of map reduce.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `map_reduce` to your list of dependencies in `mix.exs`:
+## Additional exercises
 
-```elixir
-def deps do
-  [
-    {:map_reduce, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/map_reduce](https://hexdocs.pm/map_reduce).
+* Convert our processes to use OTP compliant processes
+* Intelligently re-distribute work across the cluster
 
