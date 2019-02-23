@@ -5,7 +5,6 @@ defmodule MapReduce.FileUtil do
   alias MapReduce.Worker.Job
 
   def split(name, file, map_count) do
-    tmp = System.tmp_dir!()
     stats = File.stat!(file)
     split_size = trunc(stats.size / map_count)
     Logger.info("Splitting input file into #{split_size} chunks")

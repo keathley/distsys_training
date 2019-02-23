@@ -1,12 +1,5 @@
 defmodule MapReduce.Worker do
-  use GenServer
-
-  alias MapReduce.{
-    Master,
-    Storage,
-    WorkerRegistry,
-    Master.WorkAssignment.Job,
-  }
+  alias MapReduce.Storage
 
   require Logger
 
@@ -24,7 +17,29 @@ defmodule MapReduce.Worker do
     end
   end
 
-  def map(name, job, f, reducer_count) do
+  def start(master) do
+    send(master, {:ready, self()})
+    do_work(master)
+  end
+
+  def work(worker, type, name, job, f, other_count) do
+    send(worker, {type, name, job, f, other_count})
+  end
+
+  def do_work(master) do
+    receive do
+      {type, name, job, f, other_count} ->
+        case type do
+          :map    -> do_map(name, job, f, other_count)
+          :reduce -> do_reduce(name, job, f, other_count)
+        end
+        send(master, {:finished, self(), job})
+    end
+
+    do_work(master)
+  end
+
+  def do_map(name, job, f, reducer_count) do
     key = Job.map_name(name, job)
     {:ok, contents} = Storage.get(key)
     contents = contents || ""
@@ -35,11 +50,9 @@ defmodule MapReduce.Worker do
     |> Enum.group_by(fn map -> partition(name, job, map, reducer_count) end)
     |> Enum.map(fn {key, kv} -> {key, :erlang.term_to_binary(kv)} end)
     |> Enum.map(fn {key, kv} -> Storage.put(key, kv) end)
-
-    job
   end
 
-  def reduce(name, job, f, map_count) do
+  def do_reduce(name, job, f, map_count) do
     Logger.info(fn -> "Worker.reduce: #{job}" end)
 
     kvs =
@@ -57,8 +70,6 @@ defmodule MapReduce.Worker do
 
     merge_key = Job.merge_name(name, job)
     Storage.put(merge_key, :erlang.term_to_binary(kvs))
-
-    job
   end
 
   def merge(name, reduce_count) do
@@ -86,13 +97,6 @@ defmodule MapReduce.Worker do
       |> Integer.mod(reducer_count)
 
     Job.reduce_name(job_id, map_id, reducer)
-  end
-
-  defp tap(coll, f) do
-    Enum.map(coll, fn c ->
-      f.(c)
-      c
-    end)
   end
 end
 

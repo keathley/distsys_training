@@ -1,8 +1,7 @@
 defmodule MapReduce.Storage do
   @pool_size 50
 
-  def child_spec(opts) do
-    opts = Keyword.merge([name: __MODULE__], opts)
+  def child_spec(_opts \\ []) do
 
     children =
       for i <- 0..(@pool_size-1) do

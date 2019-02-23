@@ -26,14 +26,11 @@ defmodule MapReduceTest do
 
     File.write!(file_name, content)
 
-    assert {:ok, results} = MapReduce.start_job("test_job", file_name)
+    assert results = MapReduce.start_job("test_job", file_name)
 
     assert results["foo"] == 10
     assert results["bar"] == 20
     assert results["baz"] == 30
   end
-
-  # test "can count lots of words" do
-  #   assert {:ok, results} = MapReduce.start_job("lots_of_words", "priv/input.txt")
-  # end
 end
+

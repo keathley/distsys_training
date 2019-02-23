@@ -4,8 +4,6 @@ defmodule MapReduce do
   """
 
   alias MapReduce.{
-    Job,
-    Storage,
     Worker,
     FileUtil,
   }
@@ -22,40 +20,61 @@ defmodule MapReduce do
   """
   def start_job(mod \\ WordCount, name, file) do
     us = self()
-    master = spawn(fn -> master(us, mod, name, file) end)
+    master = spawn(fn -> run_local(us, mod, name, file) end)
+
+    for _ <- 0..8 do
+      spawn(fn -> Worker.start(master) end)
+    end
 
     receive do
       {:result, result} ->
-        {:ok, result}
+        result
     end
   end
 
-  def master(parent, mod, name, file) do
-    us = self()
-
+  def run_local(parent, mod, name, file) do
     FileUtil.split(name, file, @map_count)
 
     map_jobs    = for i <- 0..@map_count, do: i
     reduce_jobs = for i <- 0..@reduce_count, do: i
 
-    for job <- map_jobs do
-      spawn(fn ->
-        ^job = Worker.map(name, job, &mod.map/1, @reduce_count)
-        send(us, {:ok, :map, job})
-      end)
-    end
-    :ok = collect_results(@map_count, :map, [])
+    {:ok, workers} = assign_work(map_jobs, fn pid, job ->
+      Worker.work(pid, :map, name, job, &mod.map/1, @reduce_count)
+    end)
 
-    for job <- reduce_jobs do
-      spawn(fn ->
-        ^job = Worker.reduce(name, job, &mod.reduce/2, @map_count)
-        send(us, {:ok, :reduce, job})
-      end)
-    end
-    :ok = collect_results(@reduce_count, :reduce, [])
+    {:ok, workers} = assign_work(reduce_jobs, [], [], workers, fn pid, job ->
+      Worker.work(pid, :reduce, name, job, &mod.reduce/2, @map_count)
+    end)
 
     result = Worker.merge(name, @reduce_count)
     send(parent, {:result, result})
+  end
+
+  def assign_work(jobs, pending \\ [], completed \\ [], available_workers \\ [], f)
+  def assign_work([], [], _completed, workers, _), do: {:ok, workers}
+  def assign_work(jobs, pending, completed, workers, f) do
+    {jobs, pending, workers, assignments} = assign_idle_workers(jobs, pending, workers)
+
+    for {worker, job} <- assignments, do: f.(worker, job)
+
+    receive do
+      {:ready, pid} ->
+        assign_work(jobs, pending, completed, [pid | workers], f)
+
+      {:finished, pid, job} ->
+        assign_work(jobs, pending -- [job], [job | completed], [pid | workers], f)
+    end
+  end
+
+  def assign_idle_workers(jobs, pending, workers, groups \\ [])
+  def assign_idle_workers([], pending, workers, groups) do
+    {[], pending, workers, groups}
+  end
+  def assign_idle_workers(jobs, pending, [], groups) do
+    {jobs, pending, [], groups}
+  end
+  def assign_idle_workers([job | jobs], pending, [worker | workers], groups) do
+    {jobs, [job | pending], workers, [{worker, job} | groups]}
   end
 
   def collect_results(count, _, acc) when length(acc) == count+1, do: :ok
