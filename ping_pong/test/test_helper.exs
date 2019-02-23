@@ -1,1 +1,3 @@
+LocalCluster.start()
 ExUnit.start()
+

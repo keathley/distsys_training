@@ -2,40 +2,52 @@ defmodule PingPong do
   require Logger
 
   defmodule Producer do
-    def start(delay) do
-      producer = spawn(fn -> init(delay) end)
+    def start(caller) do
+      producer = spawn(fn -> init(caller) end)
       Process.register(producer, :producer)
+      producer
     end
 
     def stop do
       send(:producer, :stop)
     end
 
+    def produce(producer) do
+      send(producer, {:produce, self()})
+      receive do
+        :finished ->
+          :ok
+      end
+    end
+
     def crash do
       send(:producer, :crash)
     end
 
-    def init(delay) do
+    def init(caller) do
       receive do
         {:hello, consumer} ->
-          producer(consumer, 0, delay)
+          send(caller, {:starting, self()})
+          producer(consumer, 0)
 
         :stop ->
           :ok
       end
     end
 
-    def producer(consumer, n, delay) do
+    def producer(consumer, n) do
       receive do
+        {:produce, pid} ->
+          Logger.info("Producing: #{n}")
+          send(consumer, {:ping, n})
+          send(pid, :finished)
+          producer(consumer, n+1)
+
         :stop ->
           send(consumer, :bye)
 
         :crash ->
-          raise "Boom!!!"
-
-      after delay ->
-        send(consumer, {:ping, n})
-        producer(consumer, n+1, delay)
+          42/0
       end
     end
   end
@@ -44,30 +56,17 @@ defmodule PingPong do
     def start(producer) do
       consumer = spawn(fn -> init(producer) end)
       Process.register(consumer, :consumer)
+      consumer
     end
 
     def stop, do: send(:consumer, :stop)
 
     def init(producer) do
-      send(producer, {:hello, self()})
+      # Your code goes here!!!
     end
 
     def consume(expected) do
-      receive do
-        {:ping, ^expected} ->
-          Logger.info("Received expected value: #{expected}")
-          consume(expected+1)
-
-        {:ping, other_value} ->
-          Logger.error("Received unexpected value: #{other_value}")
-          consume(other_value+1)
-
-        :bye ->
-          :ok
-
-        :stop ->
-          :ok
-      end
+      # Your code goes here!!!
     end
   end
 end
