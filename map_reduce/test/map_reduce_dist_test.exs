@@ -1,44 +1,128 @@
 defmodule MapReduceDistTest do
   use ExUnit.Case
 
-  test "handles network partitions and errors" do
-    nodes = LocalCluster.start_nodes("mr-cluster", 3)
-    [n1, n2, n3] = nodes
+  alias MapReduce.{
+    Identity,
+    Worker,
+    Storage,
+  }
+
+  require Logger
+
+  def check(file, result) do
+    input_lines =
+      file
+      |> File.stream!(trim: true)
+      |> Stream.map(&String.trim/1)
+      |> Enum.to_list
+      |> Enum.map(&String.to_integer/1)
+      |> Enum.sort
+
+    output_lines =
+      result
+      |> Enum.map(fn {k, _} -> k end)
+      |> Enum.map(&String.to_integer/1)
+      |> Enum.sort
+
+    assert input_lines == output_lines
+  end
+
+  def check_workers(workers) do
+    for worker <- workers do
+      {:ok, count} = Storage.get(:erlang.term_to_binary(worker))
+      assert count > 0, "Worker: #{inspect worker} never did any work"
+    end
+  end
+
+  setup_all do
+    LocalCluster.start()
+    Application.ensure_all_started(:map_reduce)
+
+    :ok
+  end
+
+  setup do
+    Storage.flush()
+
+    vals =
+      Stream.iterate(0, & &1+1)
+      |> Stream.map(&Integer.to_string/1)
+      |> Enum.take(100_000)
+      |> Enum.join("\n")
+
+    File.write!("mr-test-input.txt", vals)
+
+    on_exit fn ->
+      File.rm("mr-test-input.txt")
+    end
+
+    :ok
+  end
+
+  test "handles worker failures" do
+    us = self()
+    master = spawn(fn ->
+      MapReduce.master(us, Identity, "worker-test", "mr-test-input.txt")
+    end)
+
+    w1 = spawn(fn -> Worker.start(master, 3) end)
+    w2 = spawn(fn -> Worker.start(master, -1) end)
+
+    assert_receive {:result, result}, 3_000
+    check("mr-test-input.txt", result)
+    check_workers([w1, w2])
+  end
+
+  test "handles large scale worker failure" do
+    us = self()
+    master = spawn(fn ->
+      MapReduce.master(us, Identity, "worker-test", "mr-test-input.txt")
+    end)
+    spawn_failing_workers(master)
+  end
+
+  @tag :focus
+  test "handles network failures" do
+    [n1, n2, n3] = LocalCluster.start_nodes("mr", 3)
+    :pong = Node.ping(n1)
+    :pong = Node.ping(n2)
+    :pong = Node.ping(n3)
 
     us = self()
 
-    spawn(fn ->
-      result = start_job(n1)
-      send(us, {:finished, result})
-    end)
+    master = Node.spawn(n1,
+      MapReduce, :master, [us, Identity, "worker-test", "mr-test-input.txt"])
 
+    Node.spawn(n2, Worker, :start, [master])
+    Node.spawn(n3, Worker, :start, [master])
+    Node.spawn(n3, Worker, :start, [master])
+
+    :timer.sleep(100)
     Schism.partition([n1, n2])
-    Schism.partition([n3])
+    :timer.sleep(100)
+    Schism.heal([n1, n2])
+    :timer.sleep(100)
+    Schism.partition([n1, n3])
+    :timer.sleep(100)
     Schism.heal([n1, n2, n3])
+    :timer.sleep(100)
     Schism.partition([n1])
+    :timer.sleep(100)
     Schism.heal([n1, n2, n3])
-    LocalCluster.stop_nodes([n2])
 
-    assert_receive {:finished, result}, 20_000
-
-    assert result
-    |> Enum.sort_by(fn {_, v} -> v end, &>=/2)
-    |> Enum.take(10) == [
-      {"the", 62075},
-      {"and", 38850},
-      {"of", 34434},
-      {"to", 13384},
-      {"And", 12846},
-      {"that", 12577},
-      {"in", 12334},
-      {"shall", 9760},
-      {"he", 9666},
-      {"unto", 8940}
-    ]
+    assert_receive {:result, result}, 5_000
+    check("mr-test-input.txt", result)
   end
 
-  def start_job(node) do
-    :rpc.call(node, MapReduce, :start_dist_job, ["test", "priv/input.txt"])
+  def spawn_failing_workers(master) do
+    receive do
+      {:result, result} ->
+        check("mr-test-input.txt", result)
+    after 500 ->
+      spawn(fn -> Worker.start(master, 3) end)
+      spawn(fn -> Worker.start(master, 3) end)
+      spawn_failing_workers(master)
+    end
   end
 end
 

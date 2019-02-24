@@ -20,7 +20,7 @@ defmodule MapReduce do
   """
   def start_job(mod \\ WordCount, name, file) do
     us = self()
-    master = spawn(fn -> run_local(us, mod, name, file) end)
+    master = spawn(fn -> master(us, mod, name, file) end)
 
     for _ <- 0..8 do
       spawn(fn -> Worker.start(master) end)
@@ -32,18 +32,23 @@ defmodule MapReduce do
     end
   end
 
-  def run_local(parent, mod, name, file) do
+  def run(parent, mod, name, file) do
+    master(parent, mod, name, file)
+  end
+
+  def master(parent, mod, name, file) do
+    Logger.info("Starting master process")
     FileUtil.split(name, file, @map_count)
 
-    map_jobs    = for i <- 0..@map_count, do: i
-    reduce_jobs = for i <- 0..@reduce_count, do: i
+    map_jobs    = for i <- 0..@map_count, do: {:map, i}
+    reduce_jobs = for i <- 0..@reduce_count, do: {:reduce, i}
 
     {:ok, workers} = assign_work(map_jobs, fn pid, job ->
-      Worker.work(pid, :map, name, job, &mod.map/1, @reduce_count)
+      Worker.work(pid, name, job, &mod.map/1, @reduce_count)
     end)
 
-    {:ok, workers} = assign_work(reduce_jobs, [], [], workers, fn pid, job ->
-      Worker.work(pid, :reduce, name, job, &mod.reduce/2, @map_count)
+    {:ok, _} = assign_work(reduce_jobs, [], [], workers, fn pid, job ->
+      Worker.work(pid, name, job, &mod.reduce/2, @map_count)
     end)
 
     result = Worker.merge(name, @reduce_count)
@@ -51,7 +56,9 @@ defmodule MapReduce do
   end
 
   def assign_work(jobs, pending \\ [], completed \\ [], available_workers \\ [], f)
-  def assign_work([], [], _completed, workers, _), do: {:ok, workers}
+  def assign_work([], [], completed, workers, _) do
+    {:ok, workers}
+  end
   def assign_work(jobs, pending, completed, workers, f) do
     {jobs, pending, workers, assignments} = assign_idle_workers(jobs, pending, workers)
 

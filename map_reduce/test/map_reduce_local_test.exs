@@ -4,6 +4,12 @@ defmodule MapReduceTest do
 
   alias MapReduce.Storage
 
+  setup_all do
+    Application.ensure_all_started(:map_reduce)
+
+    :ok
+  end
+
   setup do
     Storage.flush()
 

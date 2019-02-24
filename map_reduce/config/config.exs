@@ -2,7 +2,10 @@
 # and its dependencies with the aid of the Mix.Config module.
 use Mix.Config
 
-config :logger, level: :debug
+config :logger,
+  # handle_otp_reports: true,
+  # handle_sasl_reports: true,
+  level: :info
 
 # This configuration is loaded before any dependency and is restricted
 # to this project. If another project depends on this project, this

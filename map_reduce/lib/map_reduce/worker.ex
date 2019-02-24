@@ -17,26 +17,31 @@ defmodule MapReduce.Worker do
     end
   end
 
-  def start(master) do
+  def start(master, total_jobs \\ -1) do
     send(master, {:ready, self()})
-    do_work(master)
+    do_work(master, total_jobs)
   end
 
-  def work(worker, type, name, job, f, other_count) do
-    send(worker, {type, name, job, f, other_count})
+  def work(worker, name, job, f, other_count) do
+    send(worker, {name, job, f, other_count})
   end
 
-  def do_work(master) do
+  def do_work(master, 0) do
+    Logger.error("Worker is terminating")
+    :ok
+  end
+  def do_work(master, total_jobs) do
     receive do
-      {type, name, job, f, other_count} ->
+      {name, {type, job}, f, other_count} ->
         case type do
           :map    -> do_map(name, job, f, other_count)
           :reduce -> do_reduce(name, job, f, other_count)
         end
-        send(master, {:finished, self(), job})
+        send(master, {:finished, self(), {type, job}})
+        result = Storage.incr(:erlang.term_to_binary(self()))
     end
 
-    do_work(master)
+    do_work(master, total_jobs-1)
   end
 
   def do_map(name, job, f, reducer_count) do
