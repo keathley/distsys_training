@@ -6,10 +6,6 @@ defmodule MapReduce.Application do
   def start(_type, _args) do
     children = [
       MapReduce.Storage,
-      MapReduce.WorkerRegistry,
-      MapReduce.WorkerSupervisor,
-      # MapReduce.JobRegistry,
-      # MapReduce.JobSupervisor,
     ]
 
     opts = [

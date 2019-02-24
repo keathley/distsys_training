@@ -1,8 +1,7 @@
 defmodule MapReduce.Storage do
-  @pool_size 50
+  @pool_size 3
 
-  def child_spec(opts) do
-    opts = Keyword.merge([name: __MODULE__], opts)
+  def child_spec(_opts \\ []) do
 
     children =
       for i <- 0..(@pool_size-1) do
@@ -34,6 +33,10 @@ defmodule MapReduce.Storage do
 
   def get(name \\ name(), key) do
     Redix.command(name, ["GET", key])
+  end
+
+  def incr(name \\ name(), key) do
+    Redix.command(name, ["INCR", key])
   end
 
   def flush(name \\ name()) do
