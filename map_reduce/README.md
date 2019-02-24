@@ -38,14 +38,22 @@ MapReduce.start_job("test", "priv/input.txt")
 Now that we have a working Map Reduce job we can focus on distributing the work
 across multiple clusters.
 
+You should feel free to change any of the existing code for
+the master process in `MapReduce` in order to accomodate provide fault tolerance.
+You're also welcome to look at the implementation of the workers or storage engine.
+But you should not change this code.
+
 You can run `mix test test/map_reduce_dist_test.exs` to test your implementation
-across a local cluster. This test will inject faults into your network while
-it runs in order to ensure that you're handling different types of network and
+across a local cluster. This test will inject faults into your network and
+processes while it runs in order to ensure that you're handling different types of network and
 node failures. While running these tests you might find it helpful to enable logging
 in the `config.exs` file.
 
 ## Additional exercises
 
-* Convert our processes to use OTP compliant processes
+* Convert our simple processes to OTP compliant processes
 * Intelligently re-distribute work across the cluster
+* Think about ways that we could make our system perform better. Is it possible
+  to start running reduce jobs earlier? Benchmark the system and see what
+  improvements we can gain.
 
