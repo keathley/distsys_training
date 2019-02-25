@@ -56,7 +56,7 @@ defmodule MapReduce do
   end
 
   def assign_work(jobs, pending \\ [], completed \\ [], available_workers \\ [], f)
-  def assign_work([], [], completed, workers, _) do
+  def assign_work([], [], _completed, workers, _) do
     {:ok, workers}
   end
   def assign_work(jobs, pending, completed, workers, f) do
