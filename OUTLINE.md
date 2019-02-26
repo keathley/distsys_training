@@ -1,0 +1,26 @@
+## Outline
+- [BM] 8 fallacies of dist computing / general words of warning
+- Terminology
+- Connecting Nodes
+  - Cookies
+  - Lack of Security
+- Ping Pong example
+  - Get nodes connected together
+  - Message sending across nodes
+  - Monitoring processes across nodes
+- Map Reduce
+  - Write word count for local implementation
+  - Convert local implementation into distributed implementation
+  - Idempotence and Retries
+- Link Shortener
+  - Caching and replication across nodes
+  - Look for answers in our local cache before looking in the database
+  - Update the cache on the cache misses
+  - Learn about process registries
+    - pg2
+    - swarm
+    - horde
+  - Consistent Hashing & Distributed hash tables
+- Adding analytics to our link shortener
+  - Partisan
+  - CRDT grow only counter
