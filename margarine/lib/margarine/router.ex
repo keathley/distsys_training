@@ -4,7 +4,10 @@ defmodule Margarine.Router do
   require Logger
 
   alias Plug.Conn
-  alias Margarine.Linker
+  alias Margarine.{
+    Aggregates,
+    Linker,
+  }
 
   plug Plug.Logger, log: :debug
   plug Plug.Parsers,
@@ -35,6 +38,17 @@ defmodule Margarine.Router do
         conn
         |> put_resp_header("location", url)
         |> send_resp(302, url)
+
+      {:error, :not_found} ->
+        send_resp(conn, 404, "Not Found")
+    end
+  end
+
+  get "/:hash/aggregates" do
+    case Aggregates.for(hash) do
+      {:ok, aggregates} ->
+        conn
+        |> send_resp(200, "Redirects: #{aggregates.count}")
 
       {:error, :not_found} ->
         send_resp(conn, 404, "Not Found")
