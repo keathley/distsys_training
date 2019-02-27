@@ -6,6 +6,7 @@ defmodule Margarine.Application do
   def start(_type, _args) do
     children = [
       Margarine.Storage,
+      Margarine.Cache,
       Plug.Cowboy.child_spec(scheme: :http, plug: Margarine.Router, options: [port: port()])
     ]
 

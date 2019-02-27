@@ -3,16 +3,16 @@ defmodule Margarine.Storage do
 
   def child_spec(_opts \\ []) do
     children =
-      for i <- 0..(@pool_size-1) do
-        Supervisor.child_spec(
-          {Redix, database: database(), name: :"redix_#{i}"},
-          id: {Redix, i})
+      for i <- 0..(@pool_size - 1) do
+        Supervisor.child_spec({Redix, database: database(), name: :"redix_#{i}"},
+          id: {Redix, i}
+        )
       end
 
     %{
       id: __MODULE__,
       type: :supervisor,
-      start: {Supervisor, :start_link, [children, [strategy: :one_for_one]]},
+      start: {Supervisor, :start_link, [children, [strategy: :one_for_one]]}
     }
   end
 
@@ -45,6 +45,6 @@ defmodule Margarine.Storage do
   end
 
   defp database do
-    Application.get_env(:linky, :redis_database)
+    Application.get_env(:margarine, :redis_database)
   end
 end

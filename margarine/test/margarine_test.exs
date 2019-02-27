@@ -31,6 +31,7 @@ defmodule MargarineTest do
     headers = [
       {"Content-Type", "application/x-www-form-urlencoded"}
     ]
+
     HTTPoison.post!(url, URI.encode_query(params), headers)
   end
 
@@ -38,4 +39,3 @@ defmodule MargarineTest do
     HTTPoison.get!(url)
   end
 end
-

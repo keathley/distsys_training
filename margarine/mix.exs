@@ -8,7 +8,7 @@ defmodule Margarine.MixProject do
       elixir: "~> 1.7",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
-      aliases: aliases(),
+      aliases: aliases()
     ]
   end
 
@@ -23,7 +23,7 @@ defmodule Margarine.MixProject do
     [
       {:plug_cowboy, "~> 2.0"},
       {:redix, "~> 0.9"},
-      {:httpoison, "~> 1.5"},
+      {:httpoison, "~> 1.5"}
     ]
   end
 

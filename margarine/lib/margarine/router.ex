@@ -16,7 +16,6 @@ defmodule Margarine.Router do
   post "/" do
     %{"url" => url} = conn.params
     code = conn.params["code"]
-
     case Linker.create(url, code) do
       {:ok, code} ->
         conn
