@@ -75,6 +75,9 @@ defmodule Margarine.AggregateTests do
     resp = get("http://localhost:4001" <> hash)
     assert resp.status_code == 302
 
+    resp = get("http://localhost:4003" <> hash)
+    assert resp.status_code == 302
+
     eventually(fn ->
       resp = get("http://localhost:4001" <> hash <> "/aggregates")
       assert resp.body == "Redirects: 4"
@@ -87,24 +90,24 @@ defmodule Margarine.AggregateTests do
 
     eventually(fn ->
       resp = get("http://localhost:4003" <> hash <> "/aggregates")
-      assert resp.body == "Redirects: 1"
+      assert resp.body == "Redirects: 2"
     end)
 
     Schism.heal([n1, n2, n3])
 
     eventually(fn ->
       resp = get("http://localhost:4001" <> hash <> "/aggregates")
-      assert resp.body == "Redirects: 4"
+      assert resp.body == "Redirects: 5"
     end)
 
     eventually(fn ->
       resp = get("http://localhost:4002" <> hash <> "/aggregates")
-      assert resp.body == "Redirects: 4"
+      assert resp.body == "Redirects: 5"
     end)
 
     eventually(fn ->
       resp = get("http://localhost:4003" <> hash <> "/aggregates")
-      assert resp.body == "Redirects: 4"
+      assert resp.body == "Redirects: 5"
     end)
   end
 
