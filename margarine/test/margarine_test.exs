@@ -4,7 +4,7 @@ defmodule MargarineTest do
   alias Margarine.Storage
 
   setup_all do
-    System.put_env("PORT", "4001")
+    System.put_env("PORT", "4000")
     Application.ensure_all_started(:margarine)
 
     :ok
@@ -17,7 +17,7 @@ defmodule MargarineTest do
   end
 
   test "it shortens links" do
-    resp = post("http://localhost:4001", %{"url" => "https://keathley.io"})
+    resp = post("http://localhost:4000", %{"url" => "https://keathley.io"})
     assert resp.status_code == 201
     assert {_, short_link} = Enum.find(resp.headers, fn {h, _} -> h == "location" end)
 

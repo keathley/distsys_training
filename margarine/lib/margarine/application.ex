@@ -4,8 +4,11 @@ defmodule Margarine.Application do
   use Application
 
   def start(_type, _args) do
+    :pg2.create(:aggregates)
+
     children = [
       Margarine.Storage,
+      Margarine.Aggregates,
       Plug.Cowboy.child_spec(scheme: :http, plug: Margarine.Router, options: [port: port()])
     ]
 
@@ -13,5 +16,15 @@ defmodule Margarine.Application do
     Supervisor.start_link(children, opts)
   end
 
-  defp port, do: String.to_integer(System.get_env("PORT") || "4000")
+  defp port do
+    name = Node.self()
+
+    env =
+      name
+      |> Atom.to_string
+      |> String.replace(~r/@.*$/, "")
+      |> String.upcase
+
+    String.to_integer(System.get_env("#{env}_PORT") || "4000")
+  end
 end

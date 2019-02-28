@@ -24,6 +24,10 @@ defmodule Margarine.MixProject do
       {:plug_cowboy, "~> 2.0"},
       {:redix, "~> 0.9"},
       {:httpoison, "~> 1.5"},
+      # {:drax, github: "keathley/drax"},
+      {:drax, "~> 0.1"},
+      {:local_cluster, "~> 1.0", only: [:dev, :test]},
+      {:schism, "~> 1.0", only: [:dev, :test]},
     ]
   end
 
