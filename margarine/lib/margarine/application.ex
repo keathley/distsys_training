@@ -7,7 +7,6 @@ defmodule Margarine.Application do
     :pg2.create(:margarine)
 
     children = [
-      Margarine.Storage,
       Margarine.Cache,
       Margarine.Pg2,
       Plug.Cowboy.child_spec(scheme: :http, plug: Margarine.Router, options: [port: port()])

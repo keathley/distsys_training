@@ -1,7 +1,7 @@
 defmodule Margarine.Pg2Test do
   use ExUnit.Case
 
-  alias Margarine.{Cache, Storage}
+  alias Margarine.Cache
 
   setup_all do
     System.put_env("PORT", "4000")
@@ -15,18 +15,17 @@ defmodule Margarine.Pg2Test do
 
   setup do
     Cache.flush()
-    Storage.flush()
 
     :ok
   end
 
-  test "aggregates are shared across nodes" do
+  test "links are shared across nodes" do
     LocalCluster.start_nodes("margarine", 3)
 
     resp = post("http://localhost:4001", %{"url" => "https://bgmarx.com"})
     assert resp.status_code == 201
     assert {_, short_link} = Enum.find(resp.headers, fn {h, _} -> h == "location" end)
-
+    IO.inspect(short_link, label: "fist")
     resp = get(short_link)
     assert resp.status_code == 302
 

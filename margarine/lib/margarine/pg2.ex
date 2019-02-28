@@ -31,6 +31,4 @@ defmodule Margarine.Pg2 do
 
     {:noreply, state}
   end
-
-  defp key(code), do: "margarine:hash:#{code}"
 end

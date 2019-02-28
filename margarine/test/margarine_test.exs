@@ -1,7 +1,7 @@
 defmodule MargarineTest do
   use ExUnit.Case
 
-  alias Margarine.{Cache, Linker, Storage}
+  alias Margarine.Cache
 
   setup_all do
     System.put_env("SINGLE_PORT", "4066")
@@ -12,7 +12,6 @@ defmodule MargarineTest do
 
   setup do
     Cache.flush()
-    Storage.flush()
 
     :ok
   end
@@ -40,20 +39,6 @@ defmodule MargarineTest do
 
     {:ok, from_cache} = Cache.lookup(key)
     assert url == from_cache
-
-    # simulate crash
-    Cache.flush()
-    assert Cache.lookup(key) == {:error, :not_found}
-
-    # read from storage
-    Linker.lookup(hash)
-
-    # read from cache
-    {:ok, from_cache} = Cache.lookup(key)
-    assert url == from_cache
-  end
-
-  test "it broadcasts when entries are added" do
   end
 
   def post(url, params) do
