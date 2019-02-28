@@ -6,7 +6,7 @@ defmodule Margarine.Cache do
   end
 
   def lookup(cache \\ cache(), code) do
-     GenServer.call(cache, {:lookup, code})
+    GenServer.call(cache, {:lookup, code})
   end
 
   def insert(cache \\ cache(), code, url) do
@@ -25,14 +25,16 @@ defmodule Margarine.Cache do
   def handle_call({:lookup, code}, _from, state) do
     code =
       case :ets.lookup(:local_cache, code) do
-        [] -> {:error, :not_found}
+        [] ->
+          {:error, :not_found}
+
         code ->
           code
           |> List.first()
           |> elem(1)
       end
 
-    {:reply, code, state}
+    {:reply, {:ok, code}, state}
   end
 
   def handle_call({:insert, code, url}, _from, state) do

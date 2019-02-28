@@ -1,5 +1,5 @@
 defmodule Margarine.Linker do
-  alias Margarine.{Cache, Storage}
+  alias Margarine.{Cache, Pg2, Storage}
 
   def lookup(hash) do
     code_key = code_key(hash)
@@ -25,16 +25,17 @@ defmodule Margarine.Linker do
     code = hash_or_code(url, code)
 
     with :ok <- Storage.set(code_key(code), url),
-         :ok <- Cache.insert(code_key(code), url) do
+         {:ok, code} <- Cache.insert(code_key(code), url) do
+      Pg2.broadcast(code, url)
       {:ok, code}
     else
       err -> {:error, err}
     end
   end
 
-  defp hash_or_code(_url, code) when not is_nil(code), do: code
+  def hash_or_code(_url, code) when not is_nil(code), do: code
 
-  defp hash_or_code(url, _) do
+  def hash_or_code(url, _) do
     url
     |> md5
     |> Base.encode16(case: :lower)
