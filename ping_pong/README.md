@@ -16,8 +16,9 @@ default to the producers count.
 For local testing it may be convenient to use the functions in the `Node` module.
 Specifically `Node.connect` and `Node.disconnect` may be useful.
 
+The first test assumes that you will use `Logger.info` to log the required messages.
+
 ## Additional exercises
 
-* Reset monitors when we detect a down signal
 * Try spawning a few thousand consumers all monitoring a single producer. What
 happens when you disconnect the node now?
