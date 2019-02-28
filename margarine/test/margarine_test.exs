@@ -53,9 +53,6 @@ defmodule MargarineTest do
     assert url == from_cache
   end
 
-  test "it broadcasts when entries are added" do
-  end
-
   def post(url, params) do
     headers = [
       {"Content-Type", "application/x-www-form-urlencoded"}
