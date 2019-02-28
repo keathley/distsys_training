@@ -1,6 +1,8 @@
 defmodule Margarine.Aggregates do
   use GenServer
 
+  require Logger
+
   def for(hash) do
     # TODO: Do lookup from ets in the client process
     {:error, :not_found}
@@ -17,6 +19,7 @@ defmodule Margarine.Aggregates do
   def init(_args \\ []) do
     # TODO: Join pg2 group
     __MODULE__ = :ets.new(__MODULE__, [:named_table, :set, :protected])
+    :net_kernel.monitor_nodes(true)
 
     {:ok, %{table: __MODULE__}}
   end
@@ -36,6 +39,11 @@ defmodule Margarine.Aggregates do
     # TODO: Pull counter from our ets table and merge it with the given counter
     # then store it back in ets
 
+    {:noreply, state}
+  end
+
+  def handle_info(msg, state) do
+    Logger.info("Unhandled message: #{inspect msg}")
     {:noreply, state}
   end
 
