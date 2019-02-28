@@ -22,6 +22,7 @@ defmodule Margarine.Application do
       |> String.replace(~r/@.*$/, "")
       |> String.upcase()
 
-    String.to_integer(System.get_env("#{env}_PORT") || "4000")
+    # should be 4001
+    String.to_integer(System.get_env("#{env}_PORT") || "4001")
   end
 end

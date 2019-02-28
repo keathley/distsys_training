@@ -4,7 +4,8 @@ defmodule MargarineTest do
   alias Margarine.{Cache, Linker, Storage}
 
   setup_all do
-    System.put_env("SINGLE_PORT", "4066")
+    # fix this
+    # System.put_env("MANAGER_PORT", 4066)
     Application.ensure_all_started(:margarine)
 
     :ok
