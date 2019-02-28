@@ -1,5 +1,5 @@
 defmodule Margarine.Linker do
-  alias Margarine.{Cache, Pg2}
+  alias Margarine.Cache
 
   def lookup(hash) do
     with {:ok, url} <- Cache.lookup(code_key(hash)) do
@@ -14,7 +14,6 @@ defmodule Margarine.Linker do
     code = hash_or_code(url, code)
 
     with :ok <- Cache.insert(code_key(code), url) do
-      Pg2.broadcast(code, url)
       {:ok, code}
     end
   end
