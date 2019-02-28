@@ -35,6 +35,8 @@ defmodule Margarine.Router do
   get "/:hash" do
     case Linker.lookup(hash) do
       {:ok, url} ->
+        Aggregates.increment(hash)
+
         conn
         |> put_resp_header("location", url)
         |> send_resp(302, url)
@@ -46,9 +48,9 @@ defmodule Margarine.Router do
 
   get "/:hash/aggregates" do
     case Aggregates.for(hash) do
-      {:ok, aggregates} ->
+      {:ok, count} ->
         conn
-        |> send_resp(200, "Redirects: #{aggregates.count}")
+        |> send_resp(200, "Redirects: #{count}")
 
       {:error, :not_found} ->
         send_resp(conn, 404, "Not Found")
