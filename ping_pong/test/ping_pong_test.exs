@@ -54,7 +54,7 @@ defmodule PingPongTest do
 
     :ok = Producer.produce(producer)
     send(consumer, {:expected_value, self()})
-    assert_receive {:value, 2}
+    assert_receive {:value, 2}, 300
 
     # Split the consumer from the producer
     Schism.partition([n2])
@@ -74,7 +74,7 @@ defmodule PingPongTest do
     # See if producing works now
     :ok = Producer.produce(producer)
     send(consumer, {:expected_value, self()})
-    assert_receive {:value, 7}
+    assert_receive {:value, 7}, 300
   end
 end
 

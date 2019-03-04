@@ -1,11 +1,16 @@
 defmodule Margarine.Aggregates do
   use GenServer
 
-  require Logger
+  alias Drax.GCounter
 
   def for(hash) do
-    # TODO: Do lookup from ets in the client process
-    {:error, :not_found}
+    case :ets.lookup(__MODULE__, hash) do
+      [{^hash, counter}] ->
+        {:ok, GCounter.to_i(counter)}
+
+      _ ->
+        {:error, :not_found}
+    end
   end
 
   def increment(hash) do
@@ -17,43 +22,64 @@ defmodule Margarine.Aggregates do
   end
 
   def init(_args \\ []) do
-    # TODO: Join pg2 group
-    __MODULE__ = :ets.new(__MODULE__, [:named_table, :set, :protected])
     :net_kernel.monitor_nodes(true)
+    __MODULE__ = :ets.new(__MODULE__, [:set, :named_table, :protected])
+    :pg2.join(:aggregates, self())
 
-    {:ok, %{table: __MODULE__}}
+    {:ok, %{table: __MODULE__, nodes: []}}
   end
 
   def handle_cast({:increment, hash}, state) do
     counter = get_counter(state.table, hash)
-
-    # TODO: Increment counter here using our `Node.self()` id as the key
-
+    counter = GCounter.increment(counter, Node.self())
     :ets.insert(state.table, {hash, counter})
-    # Broadcast messages to other nodes
+    members = :pg2.get_members(:aggregates)
+
+    for member <- members do
+      GenServer.cast(member, {:merge, {hash, counter}})
+    end
 
     {:noreply, state}
   end
 
-  def handle_cast({:merge, counter}, state) do
-    # TODO: Pull counter from our ets table and merge it with the given counter
-    # then store it back in ets
+  def handle_cast({:merge, {hash, c1}}, state) do
+    c2 = get_counter(state.table, hash)
+    merged = GCounter.merge(c2, c1)
+    :ets.insert(state.table, {hash, merged})
 
     {:noreply, state}
   end
 
-  def handle_info(msg, state) do
-    Logger.info("Unhandled message: #{inspect msg}")
+  def handle_info({:nodeup, node}, state) do
+    counters = :ets.tab2list(state.table)
+
+    # This works
+    # for counter <- counters do
+    #   GenServer.cast({__MODULE__, node}, {:merge, counter})
+    # end
+
+    members = :pg2.get_members(:aggregates)
+    IO.inspect([Node.self(), self(), members], label: "members")
+
+    # This doesn't
+    for member <- :pg2.get_members(:aggregates), counter <- counters do
+      GenServer.cast(member, {:merge, counter})
+    end
+
+    {:noreply, state}
+  end
+
+  def handle_info(_msg, state) do
     {:noreply, state}
   end
 
   defp get_counter(table, hash) do
     case :ets.lookup(table, hash) do
-      [{^hash, aggregates}] ->
-        aggregates
+      [{^hash, counter}] ->
+        counter
 
       _ ->
-        # TODO: Create a new counter
+        GCounter.new()
     end
   end
 end
