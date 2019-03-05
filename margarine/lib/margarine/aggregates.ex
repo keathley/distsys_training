@@ -54,17 +54,14 @@ defmodule Margarine.Aggregates do
     counters = :ets.tab2list(state.table)
 
     # This works
-    # for counter <- counters do
-    #   GenServer.cast({__MODULE__, node}, {:merge, counter})
-    # end
-
-    members = :pg2.get_members(:aggregates)
-    IO.inspect([Node.self(), self(), members], label: "members")
+    for counter <- counters do
+      GenServer.cast({__MODULE__, node}, {:merge, counter})
+    end
 
     # This doesn't
-    for member <- :pg2.get_members(:aggregates), counter <- counters do
-      GenServer.cast(member, {:merge, counter})
-    end
+    # for member <- :pg2.get_members(:aggregates), counter <- counters do
+    #   GenServer.cast(member, {:merge, counter})
+    # end
 
     {:noreply, state}
   end
