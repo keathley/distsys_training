@@ -2,6 +2,8 @@ defmodule MargarineTest do
   use ExUnit.Case
 
   alias Margarine.Storage
+  alias Margarine.Cache
+  alias Margarine.Linker
 
   setup_all do
     System.put_env("PORT", "4000")
@@ -11,6 +13,7 @@ defmodule MargarineTest do
   end
 
   setup do
+    Cache.flush()
     Storage.flush()
 
     :ok
@@ -25,6 +28,29 @@ defmodule MargarineTest do
     assert resp.status_code == 302
     assert {_, "https://keathley.io"} = Enum.find(resp.headers, fn {h, _} -> h == "location" end)
     assert "https://keathley.io" = resp.body
+  end
+
+  test "it retrieves from cache" do
+    LocalCluster.start_nodes("margarine", 1)
+
+    url = "https://bgmarx.com"
+    resp = post("http://localhost:4000", %{"url" => "https://bgmarx.com"})
+    hash = resp.body
+    key = "margarine:hash:#{hash}"
+
+    {:ok, from_cache} = Cache.lookup(key)
+    assert url == from_cache
+
+    # simulate crash
+    Cache.flush()
+    assert Cache.lookup(key) == {:error, :not_found}
+
+    # read from storage
+    Linker.lookup(hash)
+
+    # read from cache
+    {:ok, from_cache} = Cache.lookup(key)
+    assert url == from_cache
   end
 
   def post(url, params) do

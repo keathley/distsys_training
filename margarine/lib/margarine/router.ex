@@ -20,6 +20,7 @@ defmodule Margarine.Router do
     %{"url" => url} = conn.params
     code = conn.params["code"]
 
+    IO.inspect(code, label: "Code")
     case Linker.create(url, code) do
       {:ok, code} ->
         conn
