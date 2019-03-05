@@ -47,7 +47,7 @@ defmodule MapReduce do
       Worker.work(pid, name, job, &mod.map/1, @reduce_count)
     end)
 
-    {:ok, _} = assign_work(reduce_jobs, [], [], workers, fn pid, job ->
+    {:ok, _} = assign_work(reduce_jobs, %{}, [], workers, fn pid, job ->
       Worker.work(pid, name, job, &mod.reduce/2, @map_count)
     end)
 
@@ -55,8 +55,8 @@ defmodule MapReduce do
     send(parent, {:result, result})
   end
 
-  def assign_work(jobs, pending \\ [], completed \\ [], available_workers \\ [], f)
-  def assign_work([], [], _completed, workers, _) do
+  def assign_work(jobs, pending \\ %{}, completed \\ [], available_workers \\ [], f)
+  def assign_work([], pending, completed, workers, f) when pending == %{} do
     {:ok, workers}
   end
   def assign_work(jobs, pending, completed, workers, f) do
@@ -66,10 +66,23 @@ defmodule MapReduce do
 
     receive do
       {:ready, pid} ->
+        Process.monitor(pid)
         assign_work(jobs, pending, completed, [pid | workers], f)
 
       {:finished, pid, job} ->
-        assign_work(jobs, pending -- [job], [job | completed], [pid | workers], f)
+        {^job, pending} = Map.pop(pending, pid)
+        assign_work(jobs, pending, [job | completed], [pid | workers], f)
+
+      {:DOWN, _, _, pid, :noconnection} ->
+        Process.monitor(pid)
+        {job, pending} = Map.pop(pending, pid)
+        jobs = if job, do: [job | jobs], else: jobs
+        assign_work(jobs, pending, completed, [pid | workers], f)
+
+      {:DOWN, _, _, pid, reason} ->
+        {job, pending} = Map.pop(pending, pid)
+        jobs = if job, do: [job | jobs], else: jobs
+        assign_work(jobs, pending, completed, workers, f)
     end
   end
 
@@ -81,7 +94,7 @@ defmodule MapReduce do
     {jobs, pending, [], groups}
   end
   def assign_idle_workers([job | jobs], pending, [worker | workers], groups) do
-    {jobs, [job | pending], workers, [{worker, job} | groups]}
+    {jobs, Map.put(pending, worker, job), workers, [{worker, job} | groups]}
   end
 
   def collect_results(count, _, acc) when length(acc) == count+1, do: :ok

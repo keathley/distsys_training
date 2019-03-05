@@ -12,7 +12,7 @@ defmodule MapReduceDistTest do
   def check(file, result) do
     input_lines =
       file
-      |> File.stream!(trim: true)
+      |> File.stream!
       |> Stream.map(&String.trim/1)
       |> Enum.to_list
       |> Enum.map(&String.to_integer/1)
@@ -107,6 +107,10 @@ defmodule MapReduceDistTest do
     Schism.heal([n1, n2, n3])
     :timer.sleep(100)
     Schism.partition([n1])
+    :timer.sleep(100)
+    Schism.heal([n1, n2])
+    :timer.sleep(100)
+    Schism.partition([n1, n3])
     :timer.sleep(100)
     Schism.heal([n1, n2, n3])
 
