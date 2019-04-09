@@ -63,10 +63,18 @@ defmodule PingPong do
 
     def init(producer) do
       # Your code goes here!!!
+      consume(0)
     end
 
     def consume(expected) do
+      receive do
+        {:check, ^expected, pid} ->
+          send(pid, :expected)
+        {:check, other, pid} ->
+          send(pid, {:unexpected, other})
+
       # Your code goes here!!!
+      end
     end
   end
 end

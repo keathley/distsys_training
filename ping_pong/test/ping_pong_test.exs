@@ -2,8 +2,6 @@ defmodule PingPongTest do
   use ExUnit.Case
   doctest PingPong
 
-  import ExUnit.CaptureLog
-
   alias PingPong.{
     Consumer,
     Producer,
@@ -15,25 +13,43 @@ defmodule PingPongTest do
 
     assert_receive {:hello, ^consumer}
 
-    assert capture_log(fn ->
-      send(consumer, {:ping, 0})
-    end) =~ "Received expected value: 0"
+    send(consumer, {:ping, 0})
+    send(consumer, {:check, 0, self()})
+    assert_receive :expected
 
-    assert capture_log(fn ->
-      send(consumer, {:ping, 1})
-    end) =~ "Received expected value: 1"
+    send(consumer, {:ping, 1})
+    send(consumer, {:check, 1, self()})
+    assert_receive :expected
 
-    assert capture_log(fn ->
-      send(consumer, {:ping, 2})
-    end) =~ "Received expected value: 2"
+    send(consumer, {:ping, 2})
+    send(consumer, {:check, 2, self()})
+    assert_receive :expected
 
-    assert capture_log(fn ->
-      send(consumer, {:ping, 4})
-    end) =~ "Received unexpected value: 4"
+    send(consumer, {:ping, 4})
+    send(consumer, {:check, 4, self()})
+    assert_receive {:unexpected, 3}
 
-    assert capture_log(fn ->
-      send(consumer, {:ping, 5})
-    end) =~ "Received expected value: 5"
+    send(consumer, {:ping, 3})
+    send(consumer, {:check, 3, self()})
+    assert_receive :expected
+  end
+
+  test "works when the producer fails" do
+    producer = Producer.start(self())
+    consumer = Consumer.start(producer)
+
+    Producer.producer(producer)
+    send(consumer, {:check, 0, self()})
+    assert_receive :expected
+
+    Producer.producer(producer)
+    send(consumer, {:check, 1, self()})
+    assert_receive :expected
+
+    Producer.crash(producer)
+    :timer.sleep(100)
+    send(consumer, {:check, 0, self()})
+    assert_receive :expected
   end
 
   test "Works across a cluster" do
@@ -45,16 +61,16 @@ defmodule PingPongTest do
 
     assert_receive {:starting, ^producer}
 
-    send(consumer, {:expected_value, self()})
-    assert_receive {:value, 0}
+    send(consumer, {:check, 0, self()})
+    assert_receive :expected
 
     :ok = Producer.produce(producer)
-    send(consumer, {:expected_value, self()})
-    assert_receive {:value, 1}
+    send(consumer, {:check, 1, self()})
+    assert_receive :expected
 
     :ok = Producer.produce(producer)
-    send(consumer, {:expected_value, self()})
-    assert_receive {:value, 2}
+    send(consumer, {:check, 2, self()})
+    assert_receive :expected
 
     # Split the consumer from the producer
     Schism.partition([n2])
@@ -65,16 +81,16 @@ defmodule PingPongTest do
     :ok = Producer.produce(producer)
     :ok = Producer.produce(producer)
     :ok = Producer.produce(producer)
-    send(consumer, {:expected_value, self()})
-    assert_receive {:value, 2}
+    send(consumer, {:check, 2, self()})
+    assert_receive :expected
 
     # Heal partition so that the consumer now sees the producer
     Schism.heal([n1, n2])
 
     # See if producing works now
     :ok = Producer.produce(producer)
-    send(consumer, {:expected_value, self()})
-    assert_receive {:value, 7}
+    send(consumer, {:check, 7, self()})
+    assert_receive :expected
   end
 end
 
