@@ -2,7 +2,7 @@ defmodule Margarine.Application do
   @moduledoc false
 
   use Application
-
+  # make sure to start the cache
   def start(_type, _args) do
     children = [
       Margarine.Storage,
