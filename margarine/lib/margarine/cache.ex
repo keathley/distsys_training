@@ -32,13 +32,8 @@ defmodule Margarine.Cache do
         [] ->
           {:error, :not_found}
 
-        code ->
-          code =
-            code
-            |> List.first()
-            |> elem(1)
-
-          {:ok, code}
+        [{_code, url}] ->
+          {:ok, url}
       end
 
     {:reply, code, state}
