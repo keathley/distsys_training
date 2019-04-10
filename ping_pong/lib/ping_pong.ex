@@ -14,14 +14,15 @@ defmodule PingPong do
 
     def produce(producer) do
       send(producer, {:produce, self()})
+
       receive do
         :finished ->
           :ok
       end
     end
 
-    def crash do
-      send(:producer, :crash)
+    def crash(producer) do
+      send(producer, :crash)
     end
 
     def init(caller) do
@@ -41,13 +42,13 @@ defmodule PingPong do
           Logger.info("Producing: #{n}")
           send(consumer, {:ping, n})
           send(pid, :finished)
-          producer(consumer, n+1)
+          producer(consumer, n + 1)
 
         :stop ->
           send(consumer, :bye)
 
         :crash ->
-          42/0
+          42 / 0
       end
     end
   end

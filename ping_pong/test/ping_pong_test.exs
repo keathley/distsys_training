@@ -38,12 +38,12 @@ defmodule PingPongTest do
     producer = Producer.start(self())
     consumer = Consumer.start(producer)
 
-    Producer.producer(producer)
-    send(consumer, {:check, 0, self()})
+    Producer.produce(producer)
+    send(consumer, {:check, 1, self()})
     assert_receive :expected
 
-    Producer.producer(producer)
-    send(consumer, {:check, 1, self()})
+    Producer.produce(producer)
+    send(consumer, {:check, 2, self()})
     assert_receive :expected
 
     Producer.crash(producer)
