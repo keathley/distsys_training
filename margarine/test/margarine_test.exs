@@ -4,8 +4,6 @@ defmodule MargarineTest do
   alias Margarine.{Cache, Linker, Storage}
 
   setup_all do
-    # fix this
-    # System.put_env("MANAGER_PORT", 4066)
     Application.ensure_all_started(:margarine)
 
     :ok
@@ -19,8 +17,6 @@ defmodule MargarineTest do
   end
 
   test "it shortens links" do
-    LocalCluster.start_nodes("margarine", 1)
-
     resp = post("http://localhost:4001", %{"url" => "https://keathley.io"})
     assert resp.status_code == 201
     assert {_, short_link} = Enum.find(resp.headers, fn {h, _} -> h == "location" end)
@@ -32,8 +28,6 @@ defmodule MargarineTest do
   end
 
   test "it retrieves from cache" do
-    LocalCluster.start_nodes("margarine", 1)
-
     url = "https://bgmarx.com"
     resp = post("http://localhost:4001", %{"url" => "https://bgmarx.com"})
     hash = resp.body

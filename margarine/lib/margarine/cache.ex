@@ -19,7 +19,7 @@ defmodule Margarine.Cache do
 
   def flush do
     # the argument is the table name
-    :ets.delete_all_objects()
+    # :ets.delete_all_objects()
   end
 
   def init(:ok) do
