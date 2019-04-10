@@ -4,7 +4,7 @@ defmodule PingPongTest do
 
   alias PingPong.{
     Consumer,
-    Producer,
+    Producer
   }
 
   test "consumers can subscribe to a producer" do
@@ -14,23 +14,23 @@ defmodule PingPongTest do
     assert_receive {:hello, ^consumer}
 
     send(consumer, {:ping, 0})
-    send(consumer, {:check, 0, self()})
-    assert_receive :expected
-
-    send(consumer, {:ping, 1})
     send(consumer, {:check, 1, self()})
     assert_receive :expected
 
-    send(consumer, {:ping, 2})
+    send(consumer, {:ping, 1})
     send(consumer, {:check, 2, self()})
     assert_receive :expected
 
+    send(consumer, {:ping, 2})
+    send(consumer, {:check, 3, self()})
+    assert_receive :expected
+
     send(consumer, {:ping, 4})
-    send(consumer, {:check, 4, self()})
+    send(consumer, {:check, 5, self()})
     assert_receive {:unexpected, 3}
 
     send(consumer, {:ping, 3})
-    send(consumer, {:check, 3, self()})
+    send(consumer, {:check, 4, self()})
     assert_receive :expected
   end
 
@@ -93,4 +93,3 @@ defmodule PingPongTest do
     assert_receive :expected
   end
 end
-
