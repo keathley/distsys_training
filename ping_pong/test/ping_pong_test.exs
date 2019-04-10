@@ -7,6 +7,22 @@ defmodule PingPongTest do
     Producer
   }
 
+  setup do
+    on_exit(fn ->
+      try do
+        Process.unregister(:consumer)
+      rescue
+        _ -> :ok
+      end
+
+      try do
+        Process.unregister(:producer)
+      rescue
+        _ -> :ok
+      end
+    end)
+  end
+
   test "consumers can subscribe to a producer" do
     producer = self()
     consumer = Consumer.start(producer)
@@ -38,15 +54,15 @@ defmodule PingPongTest do
     producer = Producer.start(self())
     consumer = Consumer.start(producer)
 
-    Producer.producer(producer)
-    send(consumer, {:check, 0, self()})
-    assert_receive :expected
-
-    Producer.producer(producer)
+    Producer.produce(producer)
     send(consumer, {:check, 1, self()})
     assert_receive :expected
 
-    Producer.crash(producer)
+    Producer.produce(producer)
+    send(consumer, {:check, 2, self()})
+    assert_receive :expected
+
+    Producer.crash()
     :timer.sleep(100)
     send(consumer, {:check, 0, self()})
     assert_receive :expected
