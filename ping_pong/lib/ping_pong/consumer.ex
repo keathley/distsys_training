@@ -22,11 +22,8 @@ defmodule PingPong.Consumer do
   end
 
   def init(_args) do
+    Process.send_after(self(), :catch_up, 400)
     {:ok, @initial}
-  end
-
-  def handle_cast({:ping, index, node}, data) do
-    {:noreply, put_in(data, [:counts, node], index)}
   end
 
   def handle_call(:get_pings, _from, data) do
@@ -46,8 +43,24 @@ defmodule PingPong.Consumer do
   def handle_call(:flush, _, _) do
     {:reply, :ok, @initial}
   end
+
   def handle_call(:crash, _from, _data) do
     _count = 42/0
     {:reply, :ok, @initial}
+  end
+
+  def handle_cast({:ping, index, node}, data) do
+    {:noreply, put_in(data, [:counts, node], index)}
+  end
+
+  def handle_info(msg, data) do
+    case msg do
+      :catch_up ->
+        GenServer.abcast(Producer, {:hiya, self()})
+        {:noreply, data}
+
+      _ ->
+        {:noreply, data}
+    end
   end
 end
