@@ -1,96 +1,125 @@
 defmodule PingPongTest do
   use ExUnit.Case
-  doctest PingPong
 
   alias PingPong.{
     Consumer,
     Producer,
   }
 
-  test "consumers can subscribe to a producer" do
-    producer = self()
-    consumer = Consumer.start(producer)
+  setup_all do
+    Application.ensure_all_started(:ping_pong)
 
-    assert_receive {:hello, ^consumer}
-
-    send(consumer, {:ping, 0})
-    send(consumer, {:check, 0, self()})
-    assert_receive :expected
-
-    send(consumer, {:ping, 1})
-    send(consumer, {:check, 1, self()})
-    assert_receive :expected
-
-    send(consumer, {:ping, 2})
-    send(consumer, {:check, 2, self()})
-    assert_receive :expected
-
-    send(consumer, {:ping, 4})
-    send(consumer, {:check, 4, self()})
-    assert_receive {:unexpected, 3}
-
-    send(consumer, {:ping, 3})
-    send(consumer, {:check, 3, self()})
-    assert_receive :expected
+    :ok
   end
 
-  test "works when the producer fails" do
-    producer = Producer.start(self())
-    consumer = Consumer.start(producer)
+  setup do
+    nodes = LocalCluster.start_nodes("ping-pong", 2)
+    GenServer.multi_call(Consumer, :flush)
+    GenServer.multi_call(Producer, :flush)
 
-    Producer.producer(producer)
-    send(consumer, {:check, 0, self()})
-    assert_receive :expected
+    on_exit fn ->
+      LocalCluster.stop_nodes(nodes)
+    end
 
-    Producer.producer(producer)
-    send(consumer, {:check, 1, self()})
-    assert_receive :expected
-
-    Producer.crash(producer)
-    :timer.sleep(100)
-    send(consumer, {:check, 0, self()})
-    assert_receive :expected
+    {:ok, nodes: nodes}
   end
 
-  test "Works across a cluster" do
-    nodes = LocalCluster.start_nodes("ping-pong-cluster", 2)
+  test "producer sends pings to each connected nodes consumer", %{nodes: nodes} do
+    [n1, n2] = nodes
+    assert :ok == Producer.send_ping()
+    assert :ok == Producer.send_ping({Producer, n2})
+    assert :ok == Producer.send_ping({Producer, n1})
+
+    for n <- nodes do
+      assert Consumer.total_pings({Consumer, n}) == 3
+    end
+  end
+
+  test "producer can check the state of each connected consumer", %{nodes: nodes} do
     [n1, n2] = nodes
 
-    producer = :rpc.call(n1, Producer, :start, [self()])
-    consumer = :rpc.call(n2, Consumer, :start, [producer])
+    assert :ok = Producer.send_ping()
+    assert :ok = Producer.send_ping({Producer, n1})
+    assert :ok = Producer.send_ping({Producer, n2})
 
-    assert_receive {:starting, ^producer}
+    eventually(fn ->
+      assert Producer.get_counts() == %{
+        n1 => 3,
+        n2 => 3,
+        Node.self() => 3,
+      }
+    end)
+  end
 
-    send(consumer, {:check, 0, self()})
-    assert_receive :expected
+  test "producer can catch up crashed consumers", %{nodes: nodes} do
+    [n1, _n2] = nodes
 
-    :ok = Producer.produce(producer)
-    send(consumer, {:check, 1, self()})
-    assert_receive :expected
+    assert :ok = Producer.send_ping()
+    assert :ok = Producer.send_ping()
 
-    :ok = Producer.produce(producer)
-    send(consumer, {:check, 2, self()})
-    assert_receive :expected
+    for n <- nodes do
+      eventually(fn ->
+        assert Consumer.count_for_node({Consumer, n}, Node.self()) == 2
+      end)
+    end
 
-    # Split the consumer from the producer
-    Schism.partition([n2])
+    # Crash the consumer in a process so we don't need to catch exceptions
+    spawn(fn ->
+      GenServer.call({Consumer, n1}, :crash)
+    end)
+
+    for n <- nodes do
+      eventually(fn ->
+        assert Consumer.count_for_node({Consumer, n}, Node.self()) == 2
+      end)
+    end
+  end
+
+  test "producer can catch up nodes after a netsplit", %{nodes: nodes} do
+    [n1, n2] = nodes
+
+    assert :ok = GenServer.call({Producer, n2}, :send_ping)
+    assert :ok = GenServer.call({Producer, n1}, :send_ping)
+
+    eventually(fn ->
+      assert Consumer.total_pings({Consumer, n1}) == 2
+      assert Consumer.total_pings({Consumer, n2}) == 2
+    end)
+
+    # Split n1 away from n2
     Schism.partition([n1])
 
-    # Producing won't work now
-    :ok = Producer.produce(producer)
-    :ok = Producer.produce(producer)
-    :ok = Producer.produce(producer)
-    :ok = Producer.produce(producer)
-    send(consumer, {:check, 2, self()})
-    assert_receive :expected
+    # Sending pings from n2 should not reach n1 and vice versa
+    assert :ok = GenServer.call({Producer, n2}, :send_ping)
+    assert :ok = GenServer.call({Producer, n1}, :send_ping)
 
-    # Heal partition so that the consumer now sees the producer
+    eventually(fn ->
+      assert Consumer.total_pings({Consumer, n1}) == 3
+      assert Consumer.total_pings({Consumer, n2}) == 3
+    end)
+
     Schism.heal([n1, n2])
 
-    # See if producing works now
-    :ok = Producer.produce(producer)
-    send(consumer, {:check, 7, self()})
-    assert_receive :expected
+    eventually(fn ->
+      assert Consumer.total_pings({Consumer, n1}) == 4
+      assert Consumer.total_pings({Consumer, n2}) == 4
+    end)
+  end
+
+  def eventually(f, retries \\ 0) do
+    f.()
+  rescue
+    err ->
+      if retries >= 10 do
+        reraise err, __STACKTRACE__
+      else
+        :timer.sleep(500)
+        eventually(f, retries + 1)
+      end
+  catch
+    _exit, _term ->
+      :timer.sleep(500)
+      eventually(f, retries + 1)
   end
 end
 
