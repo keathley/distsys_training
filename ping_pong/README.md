@@ -58,6 +58,13 @@ accomplish we need our producer to monitor node events. When the producer
 sees a new node join the cluster it should send a ping to the consumer
 with its current ping count.
 
+## Problem 4
+
+In our last exercise we're going to see how things fail when network partitions occur. In order to create partitions between nodes we're using a tool called Schism. By calling `Schism.partition/1` we can cause a partition between nodes.
+When we want to heal the partition we can call `Schism.heal/1`.
+
+After a node is split from the network - or if a new node joins the cluster - we need to catch them up on our latest status. In order to accomplish we need our producer to monitor node events. When the producer sees a new node join the cluster it should send a ping to the consumer with its current ping count.
+
 ## Additional exercises
 
 * In these exercises we only tested independent failures. What would happen if a consumer crashed during a partition? Would we be able to recover from this?
