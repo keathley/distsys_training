@@ -4,6 +4,17 @@
 
 In this exercise we're going to build our own version of a distributed map reduce.
 
+
+## Problem 1
+
+In order to distribute work across our cluster we need to have a way of starting
+workers on other nodes.
+
+## Problem 2
+
+
+
+
 ## Map Reduce Overview & Architecture
 
 A Map Reduce takes the problem of processing large data sets and breaks it into
@@ -111,6 +122,16 @@ config :logger,
 ## Additional exercises
 
 If you get through these exercises then here are some ideas for further improvements:
+
+* Currently our system can only run 1 job at a time. How could we extend this
+system to support multiple concurrent jobs?
+* Our manager is currently a single point of failure. If the manager dies
+our workers will be orphaned. How can we provide more faul-tolerance here?
+What would happen if we separated the work of managing workers from managing
+the jobs themselves.
+
+
+
 
 * Convert our simple processes to OTP compliant processes
 * Intelligently re-distribute work across the cluster. Is there a more "fair"

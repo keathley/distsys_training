@@ -9,8 +9,8 @@ some of the tools available in erlang and elixir to help mitigate those failures
 You'll need these things installed or available in order to go through
 this training.
 
-* Elixir >= 1.7
-* Erlang >= 20
+* Elixir >= 1.9.1
+* Erlang >= 22.0.7
 * Redis
 
 ## Initial Setup
@@ -46,7 +46,7 @@ ensure that you can connect nodes together before we move on.
 If you have an error during any of these steps please ask Chris or Ben for
 help.
 
-## Part 1 - Ping Pong
+## Part 1 - Ping Pong - ping_pong
 
 Part 1 provides a rough overview of connecting erlang nodes. We will see
 how to start processes on specific nodes, some of the failure scenarios

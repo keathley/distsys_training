@@ -5,7 +5,9 @@ defmodule MapReduce.Application do
 
   def start(_type, _args) do
     children = [
-      MapReduce.Storage,
+      # MapReduce.Storage,
+      MapReduce.Workers,
+      MapReduce.Manager,
     ]
 
     opts = [

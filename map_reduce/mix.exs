@@ -30,12 +30,13 @@ defmodule MapReduce.MixProject do
       {:redix, "~> 0.9"},
       {:local_cluster, "~> 1.0", only: [:dev, :test]},
       {:schism, "~> 1.0", only: [:dev, :test]},
+      {:norm, "~> 0.5.0"},
     ]
   end
 
   defp aliases do
     [
-      test: "test --no-start --seed 0 --trace",
+      test: "test --no-start --seed 0 --trace --max-failures 1",
     ]
   end
 end

@@ -1,15 +1,14 @@
 defmodule MapReduce.FileUtil do
   require Logger
 
-  alias MapReduce.Storage
   alias MapReduce.Worker.Job
 
-  def split(name, file, map_count) do
+  def chunk_file_into_jobs(file) do
     stats = File.stat!(file)
-    split_size = trunc(stats.size / map_count)
+    split_size = trunc(stats.size / 8)
     Logger.info("Splitting input file into #{split_size} chunks")
 
-    split_keys = for i <- 0..map_count, do: Job.map_name(name, i)
+    split_keys = for i <- 0..200, do: i
 
     chunk_fn = fn item, {l, acc} ->
       if l > split_size do
@@ -24,17 +23,11 @@ defmodule MapReduce.FileUtil do
       {_, acc} -> {:cont, acc, {0, ""}}
     end
 
-    chunks_with_keys =
-      file
-      |> File.stream!
-      |> Stream.chunk_while({0, ""}, chunk_fn, after_fn)
-      |> Stream.zip(split_keys)
-
-    chunks_with_keys
-    |> Enum.each(fn {chunk, key} -> Storage.put(key, chunk) end)
-
-    chunks_with_keys
-    |> Enum.map(fn {_, key} -> key end)
+    file
+    |> File.stream!
+    |> Stream.chunk_while({0, ""}, chunk_fn, after_fn)
+    |> Stream.zip(split_keys)
+    |> Stream.map(fn {data, key} -> {key, data} end)
+    |> Enum.into(%{})
   end
 end
-
