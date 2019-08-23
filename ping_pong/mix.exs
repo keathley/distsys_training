@@ -15,7 +15,8 @@ defmodule PingPong.MixProject do
   # Run "mix help compile.app" to learn about applications.
   def application do
     [
-      extra_applications: [:logger]
+      extra_applications: [:logger],
+      mod: {PingPong.Application, []}
     ]
   end
 
@@ -29,7 +30,7 @@ defmodule PingPong.MixProject do
 
   def aliases do
     [
-      test: ["test --seed 0"]
+      test: ["test --no-start --seed 0 --trace --max-failures 1"]
     ]
   end
 end
