@@ -12,7 +12,7 @@ defmodule Shortener.LinkManager do
   def child_spec(_args) do
     children = [
       Cache,
-      {Task.Supervisor, strategy: :one_for_one, name: @lookup_sup}
+      # TODO - Extend this supervision tree to support remote lookups
     ]
 
     %{
@@ -24,39 +24,16 @@ defmodule Shortener.LinkManager do
 
   def create(url) do
     short_code = generate_short_code(url)
-    :ok = Storage.set(short_code, url)
-    node = Cluster.find_node(short_code)
-    :ok = Cache.insert({Cache, node}, short_code, url)
 
     {:ok, short_code}
-  catch
-    :exit, _ ->
-      {:error, :node_down}
   end
 
   def lookup(short_code) do
-    case Cache.lookup(Cache, short_code) do
-      {:error, :not_found} ->
-        case Storage.get(short_code) do
-          {:ok, url} ->
-            Cache.insert(short_code, url)
-            {:ok, url}
-
-          error ->
-            error
-        end
-
-      {:ok, url} -> {:ok, url}
-    end
+    Storage.get(short_code)
   end
 
   def remote_lookup(short_code) do
-    node = Cluster.find_node(short_code)
-    task = Task.Supervisor.async({@lookup_sup, node}, __MODULE__, :lookup, [short_code])
-    Task.await(task, 50)
-  catch
-    :exit, _ ->
-      {:error, :node_down}
+    # TODO - Do a remote lookup
   end
 
   def generate_short_code(url) do

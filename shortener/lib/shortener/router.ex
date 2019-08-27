@@ -26,35 +26,21 @@ defmodule Shortener.Router do
         |> put_resp_header("location", short_link(conn, short_code))
         |> send_resp(201, short_code)
 
-      {:error, :taken} ->
+      {:error, _} ->
         conn
         |> send_resp(422, "Unable to shorten #{url}")
     end
   end
 
   get "/:hash" do
-    case LinkManager.remote_lookup(hash) do
+    case LinkManager.lookup(hash) do
       {:ok, url} ->
-        Aggregates.increment(hash)
-
         conn
         |> put_resp_header("location", url)
         |> send_resp(302, url)
 
-      {:error, :not_found} ->
+      {:error, _} ->
         send_resp(conn, 404, "Not Found")
-
-      {:error, :node_down} ->
-        case Storage.get(hash) do
-          {:ok, url} ->
-            Aggregates.increment(hash)
-            conn
-            |> put_resp_header("location", url)
-            |> send_resp(302, url)
-
-          {:error, :not_found} ->
-            send_resp(conn, 404, "Not Found")
-        end
     end
   end
 

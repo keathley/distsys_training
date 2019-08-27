@@ -6,7 +6,7 @@ defmodule Shortener.GCounter do
   @doc """
   Returns a new counter
   """
-  def new(), do: %{}
+  def new(), do: nil
 
   @doc """
   Increments the counter for this node by the given delta. If this is the first
@@ -14,7 +14,6 @@ defmodule Shortener.GCounter do
   """
   def increment(counter, node \\ Node.self(), delta \\ 1) when delta >= 0 do
     # TODO - Increment the counter for a given node.
-    Map.update(counter, node, delta, & &1 + delta)
   end
 
   @doc """
@@ -23,7 +22,6 @@ defmodule Shortener.GCounter do
   def merge(c1, c2) do
     # TODO - Merge's 2 counter's together by taking the highest value seen
     # for each node.
-    Map.merge(c1, c2, fn _k, v1, v2 ->  max(v1, v2) end)
   end
 
   @doc """
@@ -31,9 +29,6 @@ defmodule Shortener.GCounter do
   """
   def to_i(counter) do
     # TODO - Convert the counter into an integer
-    counter
-    |> Map.values
-    |> Enum.sum
   end
 end
 

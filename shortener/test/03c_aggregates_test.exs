@@ -6,7 +6,6 @@ defmodule Shortener.AggregatesTest do
   alias Shortener.{
     Aggregates,
     Cluster,
-    LinkManager,
     LinkManager.Cache,
     Storage,
   }
