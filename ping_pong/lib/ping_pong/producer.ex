@@ -21,6 +21,7 @@ defmodule PingPong.Producer do
   end
 
   def init(_args) do
+    # TODO - Listen for node up and down events
     {:ok, @initial}
   end
 

@@ -1,21 +1,9 @@
 # Shortener
 
-**TODO: Add description**
+## Goal
 
-## Installation
+Our goals to build a link shortener utilizing distributed erlang.
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `shortener` to your list of dependencies in `mix.exs`:
+## Problem 1
 
-```elixir
-def deps do
-  [
-    {:shortener, "~> 0.1.0"}
-  ]
-end
-```
-
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/shortener](https://hexdocs.pm/shortener).
 
