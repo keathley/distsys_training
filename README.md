@@ -9,8 +9,8 @@ some of the tools available in erlang and elixir to help mitigate those failures
 You'll need these things installed or available in order to go through
 this training.
 
-* Elixir >= 1.7
-* Erlang >= 20
+* Elixir >= 1.9
+* Erlang >= 22
 * Redis
 
 ## Initial Setup
@@ -52,25 +52,11 @@ Part 1 provides a rough overview of connecting erlang nodes. We will see
 how to start processes on specific nodes, some of the failure scenarios
 when BEAMs disconnect, sending RPCs and other fundamental concepts.
 
-## Part 2 - Map Reduce
+## Parts 2, 3, and 4 - Link Shortener
 
-Part 2 starts with a local only implementation of map reduce. Your task
-will be to make this map reduce implementation more robust against worker
-failure. It'll also explain message delivery guarantees and demonstrate
-the benefit of idempotent messages.
+For the remainder of the training we'll be building a link shortener. We will use distributed erlang to support very low latency reads, fannout using consistent hashing, CRDTs, and robust replication strategies.
 
-## Part 3 - Link Shortener (Margarine)
-
-In Part 3 we start with a simple link shortener and make it more reliable
-and decrease its overall latency by replicating our state across
-a cluster. We'll learn about the distributed process registries available
-in erlang and elixir and how we can utilize them.
-
-## Part 4 - Improving our Link Shortener
-
-Part 4 builds on the latency improvements we made to our link shortener in part 3. In this section we will look at more efficient ways of replicating our state across the cluster and add aggregates for how often people view our links.
-
-## Why do this use Distributed Erlang?
+## Why does this use Distributed Erlang?
 
 This training uses standard, distributed erlang. While there are many limitations
 and issues with dist-erl the goal of this training is not to promote a specific

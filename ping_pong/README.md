@@ -17,7 +17,7 @@ In order to solve each of these problems it'll help to know about a few importan
 
 * `Node.list/0` - Lists all currently connected nodes.
 * `GenServer.abcast/2` - Casts a message to a genserver with the name on all connected nodes.
-* `GenServer.multi_call/2` - Calls a genserver with a given name on all connected nodes. 
+* `GenServer.multi_call/2` - Calls a genserver with a given name on all connected nodes.
 * `net_kernel.monitor_nodes/1` - Allows any process to monitor node up and node down events. Node events can be handled in the `handle_info` callback.
 
 
