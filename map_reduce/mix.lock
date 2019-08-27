@@ -1,7 +1,0 @@
-%{
-  "global_flags": {:hex, :global_flags, "1.0.0", "ee6b864979a1fb38d1fbc67838565644baf632212bce864adca21042df036433", [:rebar3], [], "hexpm"},
-  "jason": {:hex, :jason, "1.1.2", "b03dedea67a99223a2eaf9f1264ce37154564de899fd3d8b9a21b1a6fd64afe7", [:mix], [{:decimal, "~> 1.0", [hex: :decimal, repo: "hexpm", optional: true]}], "hexpm"},
-  "local_cluster": {:hex, :local_cluster, "1.0.4", "3cabf9b267cf276752ee6ceccdbe3a05a2125da1b93c5bb74b586ae4539ebd66", [:mix], [{:global_flags, "~> 1.0", [hex: :global_flags, repo: "hexpm", optional: false]}], "hexpm"},
-  "redix": {:hex, :redix, "0.9.1", "7a97d04cef2d88a5042cdb911ee9f2a67fa960c75db2beec6947acbd89a0151d", [:mix], [], "hexpm"},
-  "schism": {:hex, :schism, "1.0.1", "b700883b4023b06faa5ab4add3aba5706877feb0a3dcfe8127b5dfeefe2513a5", [:mix], [], "hexpm"},
-}
