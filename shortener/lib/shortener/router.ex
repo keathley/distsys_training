@@ -32,8 +32,8 @@ defmodule Shortener.Router do
     end
   end
 
-  get "/:hash" do
-    case LinkManager.lookup(hash) do
+  get "/:short_code" do
+    case LinkManager.lookup(short_code) do
       {:ok, url} ->
         conn
         |> put_resp_header("location", url)
@@ -44,8 +44,8 @@ defmodule Shortener.Router do
     end
   end
 
-  get "/:hash/aggregates" do
-    count = Aggregates.count_for(hash)
+  get "/:short_code/aggregates" do
+    count = Aggregates.count_for(short_code)
 
     conn
     |> send_resp(200, "Redirects: #{count}")

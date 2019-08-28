@@ -33,13 +33,13 @@ defmodule Shortener.Aggregates do
     {:ok, %{table: __MODULE__, counters: %{}}}
   end
 
-  def handle_cast({:increment, hash}, %{counters: counters}=data) do
+  def handle_cast({:increment, short_code}, %{counters: counters}=data) do
     # TODO: Increment counter and broadcast a merge to the other nodes
 
     {:noreply, data}
   end
 
-  def handle_cast({:merge, hash, counter}, data) do
+  def handle_cast({:merge, short_code, counter}, data) do
     # TODO: Merge our existing set of counters with the new counter
 
     {:noreply, data}
