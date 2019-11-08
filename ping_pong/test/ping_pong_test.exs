@@ -68,6 +68,8 @@ defmodule PingPongTest do
       GenServer.call({Consumer, n1}, :crash)
     end)
 
+    :erlang.yield()
+
     for n <- nodes do
       eventually(fn ->
         assert Consumer.count_for_node({Consumer, n}, Node.self()) == 2
