@@ -22,8 +22,19 @@ defmodule PingPong.Consumer do
   end
 
   def init(_args) do
+    Process.send_after(self(), :ketchup, 10)
+
     {:ok, @initial}
   end
+
+  # ketchup ==  catch up, ayyyy
+  def handle_info(:ketchup, data) do
+    GenServer.abcast(Producer, {:ketchup, self()})
+
+    {:noreply, data}
+  end
+
+  # def handle_continue
 
   def handle_cast({:ping, index, node}, data) do
     {:noreply, put_in(data, [:counts, node], index)}
@@ -46,7 +57,8 @@ defmodule PingPong.Consumer do
   def handle_call(:flush, _, _) do
     {:reply, :ok, @initial}
   end
-  def handle_call(:crash, _from, _data) do
+
+  def handle_call(:crash, _from, data) do
     _count = 42/0
     {:reply, :ok, @initial}
   end

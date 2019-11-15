@@ -26,14 +26,21 @@ defmodule PingPong.Producer do
   end
 
   def handle_call(:send_ping, _from, data) do
-    # TODO - Send a ping to all consumer processes
-    {:reply, :ok, %{data | current: data.current+1}}
+    current_count = data.current + 1
+    GenServer.abcast(Consumer, {:ping, current_count, Node.self()})
+    {:reply, :ok, %{data | current: current_count}}
   end
 
   def handle_call(:get_counts, _from, data) do
-    # TODO - Get the count from each consumer
-    map = %{}
+    {replies, _} = GenServer.multi_call(Consumer, :total_pings)
+    map = Enum.into(replies, %{})
     {:reply, map, data}
+  end
+
+  def handle_cast({:ketchup, pid}, data) do
+    GenServer.cast(pid, {:ping, data.current, Node.self()})
+
+    {:noreply, data}
   end
 
   # Don't remove me :)
