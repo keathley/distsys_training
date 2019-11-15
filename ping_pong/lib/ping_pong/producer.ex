@@ -22,6 +22,7 @@ defmodule PingPong.Producer do
 
   def init(_args) do
     # TODO - Listen for node up and down events
+    :net_kernel.monitor_nodes(true)
     {:ok, @initial}
   end
 
@@ -48,9 +49,12 @@ defmodule PingPong.Producer do
     {:reply, :ok, @initial}
   end
 
+  def handle_info({:nodeup, node}, data) do
+    GenServer.cast({Consumer, node}, {:ping, data.current, Node.self()})
+    {:noreply, data}
+  end
+
   def handle_info(_msg, data) do
-    # TODO - Fill me in l8r
     {:noreply, data}
   end
 end
-
