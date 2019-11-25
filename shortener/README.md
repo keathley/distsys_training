@@ -14,7 +14,7 @@ and finally broadcast the short codes across the cluster.
 
 Now that we have our nodes connected and sharing links we want to make our distribution,
 more efficient. Currently we're doing full replication of all of our links. This
-is pretty inneficient. In this exercise we're going to update our replication
+is pretty inefficient. In this exercise we're going to update our replication
 strategy to send specific links to specific nodes. We'll do this using a technique
 known as Consistent Hashing. We're going to use the ExHashRing library to accomplish this.
 You will need to implement a function to rebuild the hash ring on demand. In our

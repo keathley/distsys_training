@@ -61,6 +61,6 @@ For the remainder of the training we'll be building a link shortener. We will us
 This training uses standard, distributed erlang. While there are many limitations
 and issues with dist-erl the goal of this training is not to promote a specific
 tool but instead to teach the underlying concepts that are universal to
-all distributed systems. Dist-erl provides the lowest barier for doing
+all distributed systems. Dist-erl provides the lowest barrier for doing
 that. We make no attempt to hide the issues with dist-erl. If you need
 a more robust solution you should look at Partisan.
